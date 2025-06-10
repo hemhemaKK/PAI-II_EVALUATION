@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rick & Morty Explorer – Character Directory</title>
+  <style>
+    #container{
+        margin: auto;
+        width: 70%;
+        background-color: rgb(211, 211, 211);
+        padding: 10px;
+        margin-top: -75px;
+    }
+    #cardContainer{
+         display: grid;
+         grid-template-columns: repeat(3, 1fr);
+         gap: 20px;
+    }
+    img{
+        border-radius: 20px;
+        box-shadow: 10px 10px 10px 10px rgba(11, 11, 18, 0.3);
+        }
+    img:hover{
+        border: 2px solid grey;
+    }
+    button{
+        background-color:black;
+        color: aliceblue;
+        padding: 5px;
+        border-radius: 5px;
+        font-size: larger;
+    }
+    span{
+        font-size: larger;
+    }
+    input{
+        float: left;
+        padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <center><h1>Rick & Morty Explorer – Character Directory</h1></center>
+
+   
+  <div id="inputsearch">
+    <input type="text" id="search" placeholder="Enter Name to search"><br><br><br>
+   <select name="" id="status">
+    <option value="">Select</option>
+    <option value="Alive">Alive</option>
+    <option value="Dead">Dead</option>
+    <option value="Unknow">Unknown</option>
+   </select>
+  </div>
+
+  <div id="container">
+    <center>
+        <div>
+      <button id="prevbtn">Prev</button>
+      <span id="pagenum">Page : 1</span>
+      <button id="nextbtn">Next</button>
+    </div></center>
+    <div id="cardContainer"></div>
+    
+  </div>
+</body>
+</html>
+
+<script>
+  let data = [];
+  let currpage = 1;
+  let itemperpage = 6;
+
+  async function fetchData() {
+    try {
+      const res = await fetch('https://rickandmortyapi.com/api/character');
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      data = json.results;
+      displayData();
+    } catch (err) {
+      console.error(err);
+      document.getElementById('cardContainer').innerHTML = "<p>Error loading data</p>";
+    }
+  }
+
+  function displayData() {
+    const start = (currpage - 1) * itemperpage;
+    const end = start + itemperpage;
+    const finaldata = data.slice(start, end);
+
+    const card = finaldata.map(show => `
+      <div style="padding:15px; ">
+        <img src="${show.image}" alt="${show.name}" width="300"/>
+        <h4>SPECIES: ${show.species}</h4>
+        <h4>STATUS: ${show.status}</h4>
+        <h4>LOCATION: ${show.location.name}</h4>
+        <h3>NAME: ${show.name}</h4>
+      </div>
+    `).join('');
+
+    document.getElementById('cardContainer').innerHTML = card;
+    document.getElementById('pagenum').innerText = `Page : ${currpage}`;
+  }
+
+  document.getElementById('prevbtn').addEventListener('click', () => {
+    if (currpage > 1) {
+      currpage--;
+      displayData();
+    }
+  });
+
+  document.getElementById("nextbtn").addEventListener('click', () => {
+    if (currpage < Math.ceil(data.length / itemperpage)) {
+      currpage++;
+      displayData();
+    }
+  });
+
+  function searching(){
+    let Container = document.getElementById('Container');
+    Container.innerHTML = ""
+
+    if(data.Search){
+        data.Search.forEach(show=> {
+            let cardContainer = document.createElement('div');
+            cardContainer.innerHTML = `
+       <div style="padding:15px; ">
+        <img src="${show.image}" alt="${show.name}" width="300"/>
+        <h4>SPECIES: ${show.species}</h4>
+        <h4>STATUS: ${show.status}</h4>
+        <h4>LOCATION: ${show.location.name}</h4>
+        <h3>NAME: ${show.name}</h4>
+      </div>`
+    
+      Container.appendChild(cardContainer)
+    });
+    }
+    else
+      Container.innerHTML = "<p>No Data Found</p>"
+  }
+
+  let debouncingtime;
+  document.getElementById('search').addEventListener('input', ()=>{
+    debounce(searching, 300);
+  })
+
+  function debounce(func, delay){
+    clearTimeout(debouncingtime);
+    debouncingtime = setTimeout(func, delay)
+  }
+
+  fetchData();
+</script>
